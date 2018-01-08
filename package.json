@@ -1,0 +1,19 @@
+{
+  "name": "Squadrun",
+  "version": "1.0.0",
+  "description": "Squadrun Task Porject",
+  "main": "server.js",
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "body-parser": "^1.17.1",
+    "connect-busboy": "0.0.2",
+    "express": "^4.15.2",
+    "express-json": "^1.0.0",
+    "jsonwebtoken": "^8.1.0",
+    "mongoose": "^4.10.5",
+    "nodemailer": "^4.4.1",
+    "request": "^2.81.0"
+  },
+  "author": "Darkneo",
+  "license": "ISC"
+}

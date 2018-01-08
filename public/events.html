@@ -1,0 +1,203 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="css/custom.css">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+
+
+	<section id="contact">
+			<div class="section-content">
+				<h1 class="section-header"><span class="content-header wow fadeIn " data-wow-delay="0.2s" data-wow-duration="2s"> Calendar </span></h1>
+			</div>
+			<div class="contact-section">
+			<div class="container">
+				<form>
+					<div class="col-md-4 form-line">
+			  			<div class="form-group">
+			  				<label>Title</label>
+					    	<input type="text" class="form-control" id="title" placeholder=" Enter Title">
+				  		</div>
+				  		<div class="form-group">
+					    	<label >Note</label>
+					    	<input type="text" class="form-control" id="note" placeholder=" Enter Note">
+					  	</div>	
+					  	<div class="form-group">
+					    	<label>Category</label>
+					    	<input type="text" class="form-control" id="category" placeholder=" Enter Category">
+			  			</div>
+			  			<div class="form-group">
+			  				<label >Date</label>
+					    	<input type="date" class="form-control" id="date" placeholder=" Enter Date">
+				  		</div>
+				  		<div class="form-group">
+					    	<label >Color</label>
+					    	<input type="text" class="form-control" id="color" placeholder=" Enter Color">
+					  	</div>	
+					  	<div class="form-group">
+					    	<label >Time Type</label>
+					    	<select class="form-control" id="timeType" onchange="toogleTime()">
+						    	<option value="allDay">All Day</option>
+						    	<option value="time">Time</option>
+					    	</select>
+			  			</div>
+				  		<div class="form-group">
+					    	<label >Availability</label>
+					    	<select class="form-control" id="availability">
+					    	<option value="busy">Busy</option>
+					    	<option value="free">Free</option>
+					    	</select>
+					  	</div>	
+					  	<div class="form-group" id="sTime">
+					    	<label >Start Time</label>
+					    	<input type="time" class="form-control" id="startTime" placeholder=" Enter startTime">
+			  			</div>
+			  			<div class="form-group" id="eTime">
+					    	<label >End Time</label>
+					    	<input type="time" class="form-control" id="endTime" placeholder=" Enter EndTime">
+			  			</div>
+			  			<button type="button" class="btn btn-default submit" onclick="addEvent()"><i class="fa fa-paper-plane" aria-hidden="true" ></i> Add Event</button>
+			  		</div>
+
+
+			  		<div class="col-md-8">
+			  			
+			  			<div>
+
+			  				<table class="table table-bordered">
+			  					<thead>
+			  						<tr>
+			  							<th>Date</th>
+			  							<th>Title</th>
+			  							<th>Note</th>
+			  							<th>Cateegory</th>
+			  							<th>Time Slot</th>
+			  						</tr>
+			  					</thead>
+			  					<tbody id="tableData">
+			  					</tbody>
+			  				</table>
+         
+			  			</div>
+			  			
+					</div>
+				</form>
+			</div>
+		</section>
+
+
+		<script>
+			if(!localStorage['accessToken'] || localStorage['accessToken'] == ""){
+				window.location.href = "/index.html";
+			}
+			function getData(){
+				console.log(localStorage['accessToken']);
+				$.ajax({
+					url: '/api/viewEvents',
+					type: 'get',
+					contentType: 'application/x-www-form-urlencoded',
+					headers: {"Authorization": localStorage['accessToken']},
+					success: function( data, textStatus, jQxhr ){
+						console.log(data);
+						if(data.success){
+							var table = "";
+							for(var i =0 ;i<data.data.length; i++){
+								var row = data.data[i];
+								var date = new Date(row.date);
+								// row.color = "red";
+								table += "<tr style='color:"+row.color+"'>";
+								table +="<td>"+ (date.getDate() + "/" + (date.getMonth()+1) + "/" + date.getFullYear())+ "</td>";
+								table +="<td>"+ row.title + "</td>";
+								table +="<td>"+ row.note + "</td>";
+								table +="<td>"+ row.category + "</td>";
+								if(row.timeType == "allDay"){
+									table +="<td>All Day</td>";
+								} else{
+									var startTime = new Date(row.startTime);
+									var endTime = new Date(row.endTime);
+									table +="<td>"+ (startTime.getHours()+1)+"::"+(startTime.getMinutes()+1) +" - "+ (endTime.getHours()+1)+"::"+(endTime.getMinutes()+1) + "</td>";
+								}
+								table += "</tr>";
+							}
+							$('#tableData').html(table);
+						}
+					}
+				});
+
+			}
+			getData();
+
+			function addEvent(){
+				console.log("here");
+				var data ={};
+				data.title = $('#title').val();
+				data.note = $('#note').val();
+				data.category = $('#category').val();
+				data.color = $('#color').val();
+				data.type = $('#availability').val();
+				data.timeType = $('#timeType').val();
+				data.date = new Date($('#date').val());
+				var stime = new Date($('#date').val());
+				stime.setHours($('#startTime').val().split(":")[0]-1);
+				stime.setMinutes($('#startTime').val().split(":")[1]-1);
+				data.startTime = stime.getTime();
+				var etime = new Date($('#date').val());				
+				etime.setHours($('#endTime').val().split(":")[0]-1);
+				etime.setMinutes($('#endTime').val().split(":")[1]-1);
+				data.endTime = etime.getTime();
+				console.log(data);
+				if(data.startTime > data.endTime){
+					alert("Start Time cannot be greater than End Time");
+					return;
+				}
+				if(data.timeType == "allDay"){
+					data.startTime = 0;
+					data.endTime = 0;
+				}
+				if(data.timeType == "allDay" && data.type == "busy"){
+					alert("All Day event can not have availability as Busy");
+					return;
+				}
+
+				$.ajax({
+                url: '/api/createEvent',
+                type: 'post',
+                contentType: 'application/x-www-form-urlencoded',
+                headers: {"Authorization": localStorage['accessToken']},
+                data: data,
+                success: function( data, textStatus, jQxhr ){
+                   alert("hi");
+                   console.log(data);
+                   if(data.success){
+                   		alert("Data inserted successfully");
+                   		window.location.href = "/events.html";
+                   } else{
+                   		alert(data.message)
+                   }
+                },
+                error: function( jqXhr, textStatus, errorThrown ){
+                    alert(errorThrown);
+                }
+            });
+
+			}
+
+			function toogleTime(){
+				if($('#timeType').val() == "allDay"){
+					$('#sTime').hide();
+					$('#eTime').hide();
+				} else{
+					$('#sTime').show();
+					$('#eTime').show();
+				}
+			}
+			toogleTime();
+		</script>
+
+	</body>
+</html>
